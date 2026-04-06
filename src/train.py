@@ -215,6 +215,11 @@ def main(args: argparse.Namespace) -> None:
     # CrossEntropyLoss = log-softmax + NLL loss.  For class imbalance in OCT
     # (CNV >> DRUSEN in some splits), we could add class weights — omitted here
     # to keep the implementation clean but noted as a future improvement.
+    # TODO: handle class imbalance with weighted loss
+    # class_counts = [45000, 11000, 8000, 27000]  # approx CNV, DME, DRUSEN, NORMAL
+    # weights = torch.tensor([1/c for c in class_counts])
+    # weights = weights / weights.sum()
+    # criterion = nn.CrossEntropyLoss(weight=weights.to(device))
     criterion = nn.CrossEntropyLoss()
 
     # ── Training loop ─────────────────────────────────────────────────────────
