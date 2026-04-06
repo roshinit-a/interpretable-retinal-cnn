@@ -311,8 +311,9 @@ def parse_args() -> argparse.Namespace:
         help="Initial learning rate for Adam."
     )
     parser.add_argument(
-        "--lr_step", type=int, default=5,
-        help="Halve LR every this many epochs (StepLR)."
+        "--lr_step", type=int, default=10,
+        help="Halve LR every this many epochs (StepLR).  Default of 10 gives 2 halvings"
+             " over 20 epochs: 1e-3 → 5e-4 → 2.5e-4."
     )
     parser.add_argument(
         "--num_workers", type=int, default=4,
