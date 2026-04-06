@@ -183,7 +183,7 @@ def main(args: argparse.Namespace) -> None:
     print(f"Using device: {device}")
 
     # ── Data ──────────────────────────────────────────────────────────────────
-    train_loader, val_loader, _ = get_dataloaders(
+    train_loader, val_loader, test_loader = get_dataloaders(
         data_dir=args.data_dir,
         batch_size=args.batch_size,
         num_workers=args.num_workers,
@@ -286,15 +286,9 @@ def main(args: argparse.Namespace) -> None:
     )
 
     # ── Final test evaluation ──────────────────────────────────────────────────
-    # Re-create the test loader and reload the best checkpoint so the reported
-    # test accuracy always corresponds to the best validation model, not the
-    # model state at the final epoch.
+    # Reload the best checkpoint so the reported test accuracy always corresponds
+    # to the best validation model, not the model state at the final epoch.
     print("\nRunning final evaluation on test set...")
-    _, _, test_loader = get_dataloaders(
-        data_dir=args.data_dir,
-        batch_size=args.batch_size,
-        num_workers=args.num_workers,
-    )
     checkpoint = torch.load(save_path, map_location=device)
     model.load_state_dict(checkpoint["state_dict"])
     test_loss, test_acc = evaluate(model, test_loader, criterion, device)
