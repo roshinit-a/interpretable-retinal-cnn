@@ -189,32 +189,35 @@ def get_dataloaders(
     print(f"  Val   subset : {len(val_dataset)} samples")
 
     # ── Build DataLoaders ─────────────────────────────────────────────────────
-    # pin_memory=True moves tensors to pinned (page-locked) host memory so GPU
-    # transfers are faster during training.
+    # pin_memory speeds up host→GPU transfers by using page-locked memory, but
+    # causes a warning and minor overhead on CPU-only machines.
+    pin_memory = torch.cuda.is_available()
+
     train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
         shuffle=True,           # re-shuffle each epoch for stochastic gradient
         num_workers=num_workers,
-        pin_memory=True,
+        pin_memory=pin_memory,
     )
     val_loader = DataLoader(
         val_dataset,
         batch_size=batch_size,
         shuffle=False,          # deterministic evaluation
         num_workers=num_workers,
-        pin_memory=True,
+        pin_memory=pin_memory,
     )
     test_loader = DataLoader(
         test_dataset,
         batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
-        pin_memory=True,
+        pin_memory=pin_memory,
     )
 
     # Expose class names on the loaders for convenience in other modules
     train_loader.dataset.classes = full_train_dataset.classes   # type: ignore[attr-defined]
+    val_loader.dataset.classes   = full_train_dataset.classes   # type: ignore[attr-defined]
     test_loader.dataset.classes  = test_dataset.classes          # type: ignore[attr-defined]
 
     print(f"\nClass order: {full_train_dataset.classes}")
