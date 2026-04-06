@@ -285,6 +285,21 @@ def main(args: argparse.Namespace) -> None:
         save_path=f"results/{args.model}_training_curves.png",
     )
 
+    # ── Final test evaluation ──────────────────────────────────────────────────
+    # Re-create the test loader and reload the best checkpoint so the reported
+    # test accuracy always corresponds to the best validation model, not the
+    # model state at the final epoch.
+    print("\nRunning final evaluation on test set...")
+    _, _, test_loader = get_dataloaders(
+        data_dir=args.data_dir,
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
+    )
+    checkpoint = torch.load(save_path, map_location=device)
+    model.load_state_dict(checkpoint["state_dict"])
+    test_loss, test_acc = evaluate(model, test_loader, criterion, device)
+    print(f"Final Test Results — Loss: {test_loss:.4f}, Accuracy: {test_acc * 100:.2f}%")
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  CLI
