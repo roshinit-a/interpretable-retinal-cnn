@@ -61,7 +61,11 @@ import torch.nn.functional as F
 from torch import Tensor
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-import cv2
+try:
+    import cv2
+    HAS_CV2 = True
+except ImportError:
+    HAS_CV2 = False
 
 
 class GradCAM:
@@ -161,6 +165,11 @@ class GradCAM:
                      Spatial size matches the *input* image resolution (after
                      bilinear upsampling from the activation map size).
         """
+        # Reset stored state so stale activations/gradients from a previous
+        # call never silently contaminate the next one.
+        self._activations = None
+        self._gradients   = None
+
         self.model.eval()
 
         # Ensure gradients can flow through the input tensor
@@ -234,7 +243,7 @@ class GradCAM:
         heatmap: np.ndarray,
         original_image: np.ndarray,
         alpha: float = 0.4,
-        colormap: int = cv2.COLORMAP_JET,
+        colormap: int = 2,  # cv2.COLORMAP_JET = 2; avoids referencing cv2 at class-definition time
     ) -> np.ndarray:
         """
         Blend the Grad-CAM heatmap over the original image.
@@ -248,6 +257,12 @@ class GradCAM:
         Returns:
             Blended uint8 RGB image [H, W, 3].
         """
+        if not HAS_CV2:
+            raise ImportError(
+                "opencv-python is required for overlay_heatmap.  "
+                "Install it with: pip install opencv-python"
+            )
+
         # Convert heatmap: float[0,1] → uint8[0,255] → BGR colormap → RGB
         heatmap_uint8 = np.uint8(255 * heatmap)
         heatmap_bgr   = cv2.applyColorMap(heatmap_uint8, colormap)
@@ -328,7 +343,9 @@ def generate_gradcam_grid(
         None (saves the figure to disk and displays it).
     """
     import os
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    save_dir = os.path.dirname(save_path)
+    if save_dir:  # os.path.dirname returns '' for bare filenames — makedirs('') raises FileNotFoundError
+        os.makedirs(save_dir, exist_ok=True)
 
     model.to(device).eval()
     n_classes = len(class_names)
