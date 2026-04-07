@@ -157,6 +157,24 @@ class RetinalCNN(nn.Module):
         # attributions directly tied to convolutional features.
         self.classifier = nn.Linear(128, num_classes)
 
+    def feature_maps(self, x: Tensor) -> Tensor:
+        """
+        Return the activation maps from the last conv block (before GAP).
+
+        Note: gradcam.py uses forward hooks to capture activations during the
+        main forward pass. This method is provided for debugging only and should
+        not be called during training or Grad-CAM generation.
+
+        Args:
+            x: Input tensor [B, 3, 224, 224].
+        Returns:
+            Activation tensor [B, 128, 28, 28].
+        """
+        x = self.block1(x)    # [B,  32, 112, 112]
+        x = self.block2(x)    # [B,  64,  56,  56]
+        x = self.block3(x)    # [B, 128,  28,  28]  ← Grad-CAM target
+        return x
+
     def forward(self, x: Tensor) -> Tensor:
         """
         Full forward pass.
@@ -166,9 +184,7 @@ class RetinalCNN(nn.Module):
         Returns:
             Class logits of shape [B, num_classes].
         """
-        x = self.block1(x)    # [B,  32, 112, 112]
-        x = self.block2(x)    # [B,  64,  56,  56]
-        x = self.block3(x)    # [B, 128,  28,  28]  ← Grad-CAM target
+        x = self.feature_maps(x)
         x = self.gap(x)       # [B, 128,   1,   1]
         x = x.view(x.size(0), -1)   # [B, 128]
         x = self.classifier(x)      # [B,   4]
@@ -190,22 +206,6 @@ class RetinalCNN(nn.Module):
         """
         # block3 → ConvBlock → .conv is the nn.Conv2d
         return self.block3.conv
-
-    def feature_maps(self, x: Tensor) -> Tensor:
-        """
-        Return the activation maps from the last conv block (before GAP).
-
-        Useful for debugging, visualisation, and the Grad-CAM overlay step.
-
-        Args:
-            x: Input tensor [B, 3, 224, 224].
-        Returns:
-            Activation tensor [B, 128, 28, 28].
-        """
-        x = self.block1(x)
-        x = self.block2(x)
-        x = self.block3(x)
-        return x
 
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -47,7 +47,10 @@ import torch
 import torch.nn as nn
 from torch import Tensor
 
-from src.model_cnn import ConvBlock   # re-use the same conv block definition
+try:
+    from src.model_cnn import ConvBlock
+except ModuleNotFoundError:
+    from model_cnn import ConvBlock
 
 
 class HybridModel(nn.Module):
@@ -96,12 +99,8 @@ class HybridModel(nn.Module):
         self.block2 = ConvBlock(32,           64)   # → [B,  64,  56,  56]
         self.block3 = ConvBlock(64,          128)   # → [B, 128,  28,  28]
 
-        # d_model must match CNN output channels so token embeddings are
-        # immediately compatible with the Transformer without a projection layer.
-        assert d_model == 128, (
-            f"d_model ({d_model}) must equal CNN output channels (128). "
-            "Change only if you also modify block3's out_channels."
-        )
+        # Project CNN output (128 channels) to d_model to support different Transformer sizes
+        self.proj = nn.Linear(128, d_model) if d_model != 128 else nn.Identity()
         self.d_model = d_model
 
         # ── CLS token ─────────────────────────────────────────────────────────
@@ -162,19 +161,20 @@ class HybridModel(nn.Module):
         # ── Tokenise: spatial positions become sequence elements ───────────────
         # Flatten (H, W) → S = H × W = 784 and permute to [B, S, C]
         x = x.flatten(2).permute(0, 2, 1)   # [B, 784, 128]
+        x = self.proj(x)                    # [B, 784, d_model]
 
         # ── Prepend CLS token ─────────────────────────────────────────────────
-        cls_tokens = self.cls_token.expand(B, -1, -1)   # [B, 1, 128]
-        x = torch.cat([cls_tokens, x], dim=1)            # [B, 785, 128]
+        cls_tokens = self.cls_token.expand(B, -1, -1)   # [B, 1, d_model]
+        x = torch.cat([cls_tokens, x], dim=1)            # [B, 785, d_model]
 
         # ── Add positional embeddings ─────────────────────────────────────────
         x = x + self.pos_embed   # broadcast over batch
 
         # ── Transformer encoder ───────────────────────────────────────────────
-        x = self.transformer(x)   # [B, 785, 128]
+        x = self.transformer(x)   # [B, 785, d_model]
 
         # ── Extract CLS token representation ─────────────────────────────────
-        cls_out = self.norm(x[:, 0, :])   # [B, 128]
+        cls_out = self.norm(x[:, 0, :])   # [B, d_model]
 
         # ── Linear classifier ─────────────────────────────────────────────────
         logits = self.classifier(cls_out)   # [B, 4]
