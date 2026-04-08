@@ -247,6 +247,7 @@ interpretable-retinal-cnn/
 │   └── utils.py            # Centralized reproducibility (seed_everything)
 ├── results/                # Saved plots and checkpoints
 ├── requirements.txt
+├── LICENSE                 # Open-source MIT License
 └── README.md
 ```
 
