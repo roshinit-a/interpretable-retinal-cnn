@@ -67,6 +67,11 @@ try:
 except ImportError:
     HAS_CV2 = False
 
+try:
+    from src.dataset import IMAGENET_MEAN, IMAGENET_STD
+except ModuleNotFoundError:
+    from dataset import IMAGENET_MEAN, IMAGENET_STD
+
 
 class GradCAM:
     """
@@ -303,13 +308,16 @@ def _denormalize(tensor: Tensor) -> np.ndarray:
     """
     Reverse ImageNet normalisation and convert to uint8 numpy array.
 
+    Uses IMAGENET_MEAN / IMAGENET_STD imported from dataset.py so there is
+    a single source of truth for normalisation constants across the project.
+
     Args:
         tensor: Normalised image tensor [3, H, W].
     Returns:
         uint8 numpy array [H, W, 3].
     """
-    mean = np.array([0.485, 0.456, 0.406])
-    std  = np.array([0.229, 0.224, 0.225])
+    mean = np.array(IMAGENET_MEAN)
+    std  = np.array(IMAGENET_STD)
     img  = tensor.permute(1, 2, 0).cpu().numpy()   # [H, W, 3]
     img  = img * std + mean
     img  = np.clip(img, 0, 1)
