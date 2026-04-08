@@ -8,8 +8,11 @@ but self-attention can capture long-range dependencies — e.g. how a drusen dep
 in the periphery relates to structural changes near the fovea.
 
 This architecture mirrors the design philosophy of:
-    Mishra, S. et al. (2024).  "Hybrid CNN-Transformer-Ensemble for Retinal
-    Condition Classification."  ACM Digital Health.
+    Dosovitskiy, A. et al. (2021).  "An Image is Worth 16x16 Words: Transformers for
+    Image Recognition at Scale."  ICLR 2021.  arXiv:2010.11929.
+
+    Chen, J. et al. (2021).  "TransUNet: Transformers Make Strong Encoders for Medical
+    Image Segmentation."  arXiv:2102.04306.
 
 Here we implement a minimal, principled version:
     1. CNN backbone extracts spatial feature maps  →  [B, 128, 28, 28]
@@ -119,8 +122,8 @@ class HybridModel(nn.Module):
         nn.init.trunc_normal_(self.pos_embed, std=0.02)
 
         # ── Transformer Encoder ───────────────────────────────────────────────
-        # This mirrors the hybrid CNN-Transformer architecture from Mishra et al.
-        # ACM Health 2024 — a single Transformer encoder layer provides enough
+        # This follows the hybrid CNN-Transformer design from Dosovitskiy et al. (ViT)
+        # and Chen et al. (TransUNet) — a single Transformer encoder layer provides enough
         # cross-position attention without exploding parameter count.
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model,

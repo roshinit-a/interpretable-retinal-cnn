@@ -72,9 +72,10 @@ CNN Backbone → [B, 128, 28, 28]
   Linear(128 → 4) → [B, 4]
 ```
 
-> *"This mirrors the hybrid CNN-Transformer architecture from Mishra et al. ACM Digital Health 2024,  
->  which demonstrated that cross-position self-attention over convolutional feature tokens  
->  consistently outperforms pure CNN classifiers on retinal OCT."*
+> *"This architecture follows the hybrid CNN-Transformer design pattern of Dosovitskiy et al. (ViT, ICLR 2021)
+> and applied to medical imaging by Chen et al. (TransUNet, 2021): the CNN backbone extracts local spatial
+> features, while the Transformer encoder provides global self-attention over those feature tokens —
+> capturing long-range dependencies across retinal regions that pure CNNs cannot model."*
 
 ---
 
@@ -146,7 +147,7 @@ The heatmap `L^c` (typically 28×28 for our architecture) is upsampled to 224×2
 | HybridModel (CNN+Transformer) | ~327 K | **95.53%** | 16 / 20 |
 
 *Results from a single GPU run — seed 42, 20 epochs, Adam lr=1e-3, StepLR step=10, γ=0.5.*
-*The Hybrid gains **+3.35 pp** over the baseline CNN — consistent with Mishra et al. (2024).*
+*The Hybrid gains **+3.35 pp** over the baseline CNN — consistent with the CNN-Transformer hybrid findings of Chen et al. / TransUNet (2021).*
 
 ### Grad-CAM Grid
 
@@ -217,7 +218,8 @@ jupyter notebook notebooks/
 4. Zhou, B. et al. (2016). Learning Deep Features for Discriminative Localisation. *CVPR*.
 5. Vaswani, A. et al. (2017). Attention Is All You Need. *NeurIPS*.
 6. Böhle, M. et al. (2022). B-cos Networks: Alignment is All We Need for Interpretability. *CVPR*.
-7. Mishra, S. et al. (2024). Hybrid CNN-Transformer-Ensemble for Retinal Condition Classification. *ACM Digital Health*.
+7. Dosovitskiy, A. et al. (2021). An Image is Worth 16×16 Words: Transformers for Image Recognition at Scale. *ICLR*. arXiv:2010.11929.
+8. Chen, J. et al. (2021). TransUNet: Transformers Make Strong Encoders for Medical Image Segmentation. arXiv:2102.04306.
 
 ---
 
