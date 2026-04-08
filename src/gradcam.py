@@ -304,22 +304,25 @@ class GradCAM:
 #  Grid visualisation utility
 # ──────────────────────────────────────────────────────────────────────────────
 
-def _denormalize(tensor: Tensor) -> np.ndarray:
+def _denormalize(tensor: Tensor, mean=IMAGENET_MEAN, std=IMAGENET_STD) -> np.ndarray:
     """
-    Reverse ImageNet normalisation and convert to uint8 numpy array.
+    Reverse normalisation and convert to uint8 numpy array.
 
-    Uses IMAGENET_MEAN / IMAGENET_STD imported from dataset.py so there is
-    a single source of truth for normalisation constants across the project.
+    Uses IMAGENET_MEAN / IMAGENET_STD imported from dataset.py as defaults
+    so there is a single source of truth, but allows passing custom
+    mean and std values to support different training configurations.
 
     Args:
-        tensor: Normalised image tensor [3, H, W].
+        tensor: Normalised image tensor [C, H, W] (e.g. [3, H, W]).
+        mean: Sequence of mean values (e.g. tuple or list) per channel.
+        std: Sequence of standard deviation values (e.g. tuple or list) per channel.
     Returns:
-        uint8 numpy array [H, W, 3].
+        uint8 numpy array [H, W, C].
     """
-    mean = np.array(IMAGENET_MEAN)
-    std  = np.array(IMAGENET_STD)
-    img  = tensor.permute(1, 2, 0).cpu().numpy()   # [H, W, 3]
-    img  = img * std + mean
+    mean_np = np.array(mean)
+    std_np  = np.array(std)
+    img  = tensor.permute(1, 2, 0).cpu().numpy()   # [H, W, C]
+    img  = img * std_np + mean_np
     img  = np.clip(img, 0, 1)
     return np.uint8(255 * img)
 

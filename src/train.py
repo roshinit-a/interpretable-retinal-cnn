@@ -37,6 +37,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.dataset import get_dataloaders
 from src.model_cnn import RetinalCNN
 from src.model_hybrid import HybridModel
+from src.utils import seed_everything
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -178,6 +179,10 @@ def main(args: argparse.Namespace) -> None:
     """
     Orchestrate data loading, model initialisation, training, and checkpointing.
     """
+    # ── Reproducibility ───────────────────────────────────────────────────────
+    seed_everything(args.seed)
+
+
     # ── Device ────────────────────────────────────────────────────────────────
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
@@ -354,6 +359,10 @@ def parse_args() -> argparse.Namespace:
         help="Disable inverse-frequency class weighting in the loss function."
              " By default, class weights are enabled to counteract OCT dataset"
              " imbalance (CNV ~44%% vs DRUSEN ~10%%)."
+    )
+    parser.add_argument(
+        "--seed", type=int, default=42,
+        help="Random seed for reproducibility."
     )
     return parser.parse_args()
 
