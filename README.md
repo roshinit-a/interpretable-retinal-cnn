@@ -178,7 +178,7 @@ The interpretability framework here is directly applicable to the ensemble and h
 
 ```bash
 # 1. Clone and set up environment
-git clone https://github.com/your-username/interpretable-retinal-cnn
+git clone https://github.com/roshinit-a/interpretable-retinal-cnn
 cd interpretable-retinal-cnn
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
