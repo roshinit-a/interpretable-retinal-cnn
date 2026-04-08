@@ -212,15 +212,31 @@ def main(args: argparse.Namespace) -> None:
     scheduler = StepLR(optimizer, step_size=args.lr_step, gamma=0.5)
 
     # ── Loss function ─────────────────────────────────────────────────────────
-    # CrossEntropyLoss = log-softmax + NLL loss.  For class imbalance in OCT
-    # (CNV >> DRUSEN in some splits), we could add class weights — omitted here
-    # to keep the implementation clean but noted as a future improvement.
-    # TODO: handle class imbalance with weighted loss
-    # class_counts = [45000, 11000, 8000, 27000]  # approx CNV, DME, DRUSEN, NORMAL
-    # weights = torch.tensor([1/c for c in class_counts])
-    # weights = weights / weights.sum()
-    # criterion = nn.CrossEntropyLoss(weight=weights.to(device))
-    criterion = nn.CrossEntropyLoss()
+    # CrossEntropyLoss with inverse-frequency class weights to address imbalance.
+    # Training distribution: CNV≈44.6%, NORMAL≈31.5%, DME≈13.6%, DRUSEN≈10.3%.
+    # Without weighting, DRUSEN recall is systematically lower (~90.9% vs ~98-99%
+    # for majority classes) — clinically significant as drusen are early AMD markers.
+    #
+    # Weight formula: w_c = (1 / count_c) normalised so sum(w) = 1.
+    # Minority classes receive higher loss penalties, incentivising the model to
+    # attend to them proportionally.
+    if not args.no_class_weights:
+        # Compute exact counts from the training split
+        import numpy as _np
+        class_counts = _np.zeros(4, dtype=_np.int64)
+        for _, labels in train_loader:
+            for l in labels:
+                class_counts[l.item()] += 1
+        weights = 1.0 / class_counts.astype(float)
+        weights = weights / weights.sum()
+        criterion = nn.CrossEntropyLoss(
+            weight=torch.tensor(weights, dtype=torch.float32).to(device)
+        )
+        print(f"Class weights (CNV DME DRUSEN NORMAL): "
+              f"{weights[0]:.4f}  {weights[1]:.4f}  {weights[2]:.4f}  {weights[3]:.4f}")
+    else:
+        criterion = nn.CrossEntropyLoss()
+        print("Class weighting disabled (--no_class_weights)")
 
     # ── Training loop ─────────────────────────────────────────────────────────
     best_val_acc = 0.0
@@ -332,6 +348,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--num_workers", type=int, default=4,
         help="DataLoader worker processes.  Use 0 on Windows."
+    )
+    parser.add_argument(
+        "--no_class_weights", action="store_true",
+        help="Disable inverse-frequency class weighting in the loss function."
+             " By default, class weights are enabled to counteract OCT dataset"
+             " imbalance (CNV ~44%% vs DRUSEN ~10%%)."
     )
     return parser.parse_args()
 
