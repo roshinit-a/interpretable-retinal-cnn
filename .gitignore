@@ -17,9 +17,14 @@ env/
 *.ipynb_checkpoints
 
 # Data (never commit raw images or large files)
+data/train
 data/train/
+data/test
 data/test/
+data/val
 data/val/
+data/OCT2017*/
+data/oct2017*/
 data/*.zip
 data/*.tar*
 
