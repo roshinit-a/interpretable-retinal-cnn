@@ -27,6 +27,9 @@ shap==0.45.1
 # --- ML utilities ---
 scikit-learn==1.4.2
 
+# --- Data fetching ---
+kaggle==1.6.14
+
 # --- Progress bars / utilities ---
 tqdm==4.66.2
 
