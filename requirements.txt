@@ -5,6 +5,9 @@
 # ─────────────────────────────────────────────
 
 # --- Core deep learning ---
+# NOTE: The versions below install CPU-only PyTorch.
+# For GPU (CUDA) support, visit https://pytorch.org/get-started/locally/
+# and replace the two lines below with the output of the install selector.
 torch==2.2.2
 torchvision==0.17.2
 

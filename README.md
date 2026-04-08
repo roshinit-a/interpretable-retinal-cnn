@@ -181,6 +181,8 @@ The interpretability framework here is directly applicable to the ensemble and h
 git clone https://github.com/roshinit-a/interpretable-retinal-cnn
 cd interpretable-retinal-cnn
 python -m venv venv && source venv/bin/activate
+# GPU users: visit https://pytorch.org/get-started/locally/ and install
+# the CUDA-enabled torch/torchvision *before* running the line below.
 pip install -r requirements.txt
 
 # 2. Download dataset (see data/README.md)
