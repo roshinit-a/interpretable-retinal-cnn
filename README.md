@@ -20,7 +20,7 @@ Retinal diseases such as Choroidal Neovascularisation (CNV), Diabetic Macular Ed
 | Test set       | 968 images (242 per class, perfectly balanced)                 |
 | Resolution     | Variable; resized to **224 × 224** for training               |
 
-**Class imbalance in training:** CNV (~45%) and NORMAL (~32%) dominate; DRUSEN (~10%) is substantially under-represented.  This explains why DRUSEN typically has the lowest per-class recall.  See `data/README.md` for download instructions.
+**Class imbalance in training:** CNV (~45%) and NORMAL (~32%) dominate; DRUSEN (~10%) is substantially under-represented. This explains why DRUSEN typically has the lowest per-class recall without mitigation. **To address this, we compute class frequencies dynamically and apply a weighted CrossEntropyLoss during training.** See `data/README.md` for download instructions.
 
 ---
 
@@ -195,11 +195,14 @@ unzip -q kermany2018.zip && rm kermany2018.zip
 ln -sf "OCT2017 /train" train && ln -sf "OCT2017 /test" test && ln -sf "OCT2017 /val" val
 cd ..
 
-# 3. Train CNN
-python src/train.py --model cnn --data_dir data --epochs 20
+# 3. Train CNN (with deterministic seeding and class weights)
+python src/train.py --model cnn --data_dir data --epochs 20 --seed 42
 
 # 4. Train Hybrid
-python src/train.py --model hybrid --data_dir data --epochs 20
+python src/train.py --model hybrid --data_dir data --epochs 20 --seed 42
+
+# (Optional) Disable class weights if desired
+# python src/train.py --model cnn --data_dir data --no_class_weights
 
 # 5. Evaluate + SHAP
 python src/evaluate.py --checkpoint results/best_cnn.pth --data_dir data
@@ -240,8 +243,15 @@ interpretable-retinal-cnn/
 │   ├── model_hybrid.py     # CNN + Transformer hybrid
 │   ├── gradcam.py          # Grad-CAM from scratch (PyTorch hooks)
 │   ├── train.py            # Training loop (--model cnn|hybrid)
-│   └── evaluate.py         # Metrics + confusion matrix + SHAP
+│   ├── evaluate.py         # Metrics + confusion matrix + SHAP
+│   └── utils.py            # Centralized reproducibility (seed_everything)
 ├── results/                # Saved plots and checkpoints
 ├── requirements.txt
 └── README.md
 ```
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
