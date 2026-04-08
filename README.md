@@ -142,10 +142,10 @@ The heatmap `L^c` (typically 28×28 for our architecture) is upsampled to 224×2
 
 | Model                  | Params  | Best Val Acc | Test Acc |
 |------------------------|---------|--------------|----------|
-| RetinalCNN (baseline)  | ~160 K  | ~90.1%       | ~89.7%   |
-| HybridModel (CNN+Transformer) | ~1.5 M | ~92.4% | ~91.8%  |
+| RetinalCNN (baseline)  | ~94 K   | 92.18%       | TBD (run after notebook 04)   |
+| HybridModel (CNN+Transformer) | ~1.5 M | TBD | TBD  |
 
-*Exact numbers depend on your training run and GPU seed.*
+*Numbers from a single GPU training run (seed 42, 20 epochs, lr=1e-3, StepLR step=10). Hybrid results will be updated after notebook 04 completes.*
 
 ### Grad-CAM Grid
 
@@ -185,9 +185,13 @@ python -m venv venv && source venv/bin/activate
 # the CUDA-enabled torch/torchvision *before* running the line below.
 pip install -r requirements.txt
 
-# 2. Download dataset (see data/README.md)
+# 2. Download dataset into the data/ folder
+cd data
 kaggle datasets download -d paultimothymooney/kermany2018
-unzip kermany2018.zip -d data/
+unzip -q kermany2018.zip && rm kermany2018.zip
+# Create symlinks so all scripts find data/train, data/test, data/val
+ln -sf "OCT2017 /train" train && ln -sf "OCT2017 /test" test && ln -sf "OCT2017 /val" val
+cd ..
 
 # 3. Train CNN
 python src/train.py --model cnn --data_dir data --epochs 20
