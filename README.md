@@ -140,12 +140,13 @@ The heatmap `L^c` (typically 28×28 for our architecture) is upsampled to 224×2
 
 ### Accuracy
 
-| Model                  | Params  | Best Val Acc | Test Acc |
-|------------------------|---------|--------------|----------|
-| RetinalCNN (baseline)  | ~94 K   | 92.18%       | TBD (run after notebook 04)   |
-| HybridModel (CNN+Transformer) | ~1.5 M | TBD | TBD  |
+| Model                  | Params   | Best Val Acc | Best Epoch |
+|------------------------|----------|--------------|------------|
+| RetinalCNN (baseline)  | ~94 K    | **92.18%**   | 17 / 20    |
+| HybridModel (CNN+Transformer) | ~327 K | **95.53%** | 16 / 20 |
 
-*Numbers from a single GPU training run (seed 42, 20 epochs, lr=1e-3, StepLR step=10). Hybrid results will be updated after notebook 04 completes.*
+*Results from a single GPU run — seed 42, 20 epochs, Adam lr=1e-3, StepLR step=10, γ=0.5.*
+*The Hybrid gains **+3.35 pp** over the baseline CNN — consistent with Mishra et al. (2024).*
 
 ### Grad-CAM Grid
 
